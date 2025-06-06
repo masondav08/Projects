@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from server_monitor import get_server_metrics
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 import os
 
 app = FastAPI()
@@ -21,10 +21,18 @@ SERVERS = [
     {"name": "Windows", "host": "192.168.1.20", "user": "admin", "pass": "adminpass"},
 ]
 
-# Root route - app health check
+# Serve the static frontend folder at /static
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Root route: serve frontend index.html
 @app.get("/")
-def root():
-    return {"message": "SIEM Backend API is running. Use /api/servers to get server data."}
+def get_index():
+    return FileResponse(os.path.join("static", "index.html"))
+
+# API health check (optional at /api/health)
+@app.get("/api/health")
+def health_check():
+    return {"message": "SIEM Backend API is running."}
 
 # Get all servers and their metrics
 @app.get("/api/servers")
@@ -39,14 +47,10 @@ def get_all_servers():
             "memory": metrics.get("memory", 0),
             "uptime": metrics.get("uptime", "Unavailable"),
             "error": metrics.get("error")
-
         })
     return {"servers": result}
 
-
-
-#Test Debug.log
-
+# Get single server by name
 @app.get("/api/servers/{server_name}")
 def get_server(server_name: str):
     print(f"User requested server: {server_name}")
@@ -62,20 +66,4 @@ def get_server(server_name: str):
                 "uptime": metrics.get("uptime", "Unavailable"),
                 "error": metrics.get("error")
             }
-
     raise HTTPException(status_code=404, detail="Server not found")
-
-# Run the app with: uvicorn SIEM_main:app --reload
-# Note: Ensure you have the required packages installed:
-
-
-
-
-
-
-# Serve the static frontend
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-@app.get("/")
-def get_index():
-    return FileResponse(os.path.join("static", "index.html"))

@@ -1,6 +1,6 @@
 async function fetchServers() {
   try {
-    const response = await fetch('http://127.0.0.1:8000/api/servers');
+    const response = await fetch('/api/servers');
     if (!response.ok) throw new Error('Failed to fetch server data');
 
     const servers = await response.json();
