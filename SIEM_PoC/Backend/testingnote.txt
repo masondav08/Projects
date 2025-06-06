@@ -1,0 +1,16 @@
+Testing Backend.
+(
+
+Open powershell, get to directory with main, in this case SIEM_main.py.
+
+SIEM_PoC>Backend>
+
+Then run 
+
+python -m uvicorn SIEM_main:app --reload --host 127.0.0.1 --port 8000
+
+This opens uvicorn server for backend for testing purposes (Thus 127.0.0.1)
+
+)
+
+

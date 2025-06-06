@@ -25,7 +25,6 @@ def get_server_metrics(hostname, username, password):
 
         ssh.close()
 
-        # Status logic
         status = "healthy"
         if cpu_usage > 80 or mem_usage > 80:
             status = "warning"

@@ -1,23 +1,32 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from server_monitor import get_server_metrics
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 
 app = FastAPI()
 
 # CORS config so frontend can access API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change in production
+    allow_origins=["*"],  # Change in production to trusted domains
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Define servers to monitor
 SERVERS = [
-    {"name": "Server-01", "host": "192.168.1.10", "user": "ubuntu", "pass": "password123"},
-    {"name": "Server-02", "host": "192.168.1.20", "user": "admin", "pass": "adminpass"},
+    {"name": "Linux", "host": "192.168.1.10", "user": "ubuntu", "pass": "password123"},
+    {"name": "Windows", "host": "192.168.1.20", "user": "admin", "pass": "adminpass"},
 ]
 
+# Root route - app health check
+@app.get("/")
+def root():
+    return {"message": "SIEM Backend API is running. Use /api/servers to get server data."}
+
+# Get all servers and their metrics
 @app.get("/api/servers")
 def get_all_servers():
     result = []
@@ -25,9 +34,48 @@ def get_all_servers():
         metrics = get_server_metrics(srv["host"], srv["user"], srv["pass"])
         result.append({
             "name": srv["name"],
-            "status": metrics["status"],
-            "cpu": metrics["cpu"],
-            "memory": metrics["memory"],
-            "uptime": metrics["uptime"]
+            "status": metrics.get("status", "unknown"),
+            "cpu": metrics.get("cpu", 0),
+            "memory": metrics.get("memory", 0),
+            "uptime": metrics.get("uptime", "Unavailable"),
+            "error": metrics.get("error")
+
         })
-    return result
+    return {"servers": result}
+
+
+
+#Test Debug.log
+
+@app.get("/api/servers/{server_name}")
+def get_server(server_name: str):
+    print(f"User requested server: {server_name}")
+    for srv in SERVERS:
+        print(f"Comparing to: {srv['name']}")
+        if srv["name"].lower() == server_name.lower():
+            metrics = get_server_metrics(srv["host"], srv["user"], srv["pass"])
+            return {
+                "name": srv["name"],
+                "status": metrics.get("status", "unknown"),
+                "cpu": metrics.get("cpu", 0),
+                "memory": metrics.get("memory", 0),
+                "uptime": metrics.get("uptime", "Unavailable"),
+                "error": metrics.get("error")
+            }
+
+    raise HTTPException(status_code=404, detail="Server not found")
+
+# Run the app with: uvicorn SIEM_main:app --reload
+# Note: Ensure you have the required packages installed:
+
+
+
+
+
+
+# Serve the static frontend
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+def get_index():
+    return FileResponse(os.path.join("static", "index.html"))
