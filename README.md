@@ -3,9 +3,9 @@ My Github account, where all of my coding projects come to life! Everything I ha
 
 Current Projects - 
 
-Undergrad 2023 Application
+Undergrad 2023 Cyber Tool Suite
 
-    This versatile cybersecurity tool suite is designed to assist in various tasks of everyday task and some fascets of penetration testing.
+ -   This versatile cybersecurity tool suite is designed to assist in various tasks of everyday task and some fascets of penetration testing.
 
 SIEM_PoC 2025
 
